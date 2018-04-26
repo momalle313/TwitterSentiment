@@ -22,7 +22,7 @@ class NaiveBayesText:
 
 
 	# Initialize class values
-	def __init__(self, datafile, n=1500000, k=10):
+	def __init__(self, datafile, n=500000, k=10):
 		self.data = pd.read_csv('database/' + str(datafile), error_bad_lines = False, warn_bad_lines=False, nrows=n)
 		self.tweet_num = n
 		self.k_folds = k
@@ -94,20 +94,25 @@ class NaiveBayesText:
 						self.pos[word] = 1
 
 		# Fix zero-frequency problem
-		for key in self.pos.keys():
-			if key not in self.neg:
-				self.neg[key] = 0
-		for key in self.neg.keys():
-			if key not in self.pos:
-				self.pos[key] = 0
 		self.pos = {key:value+1 for key, value in self.pos.iteritems()}
 		self.neg = {key:value+1 for key, value in self.neg.iteritems()}
+		for key in self.pos.keys():
+			if key not in self.neg:
+				self.neg[key] = 1
+		for key in self.neg.keys():
+			if key not in self.pos:
+				self.pos[key] = 1
 	
+		# Normalize totals so ratios don't get too small
+		self.tot_neg = self.tot_neg/(self.tweet_num/float(10))
+		self.tot_pos = self.tot_pos/(self.tweet_num/float(10))
+		self.tot_word = self.tot_word/(self.tweet_num/float(10))
+
 		# Calculate word ratios
-		self.pos_ratio = self.tot_pos/float(self.tot_word)
-		self.neg_ratio = self.tot_neg/float(self.tot_word)
-		self.pos = {key:(self.pos[key]/float(self.tot_pos)) for key in self.pos.keys()}
-		self.neg = {key:(self.neg[key]/float(self.tot_neg)) for key in self.neg.keys()}
+		self.pos_ratio = self.tot_pos/self.tot_word
+		self.neg_ratio = self.tot_neg/self.tot_word
+		self.pos = {key:(self.pos[key]/self.tot_pos) for key in self.pos.keys()}
+		self.neg = {key:(self.neg[key]/self.tot_neg) for key in self.neg.keys()}
 	
 
 	def predict(self, sentence):
@@ -115,6 +120,10 @@ class NaiveBayesText:
 		# Set scores to 1 
 		pos_score = 1
 		neg_score = 1
+
+		# Throw out non strings
+		if not isinstance(sentence, basestring):
+			return -1
 
 		# Strip punctuation and split sentence
 		words = sentence.translate(None,string.punctuation).split()
@@ -127,13 +136,15 @@ class NaiveBayesText:
 				pos_score *= self.pos[word]
 			if word in self.neg:
 				neg_score *= self.neg[word]
-
+				
 		# Include overall ratios
 		pos_score *= self.pos_ratio
 		neg_score *= self.neg_ratio
 
 		# Normalize
 		div = pos_score+neg_score
+		if div == 0:
+			div = 1
 		pos_score = pos_score/div
 		neg_score = neg_score/div
 
@@ -297,9 +308,9 @@ class NaiveBayesText:
 		# Load values from file
 		self.neg = ast.literal_eval(values[0])
 		self.pos = ast.literal_eval(values[1])
-		self.tot_neg = int(values[2])
-		self.tot_pos = int(values[3])
-		self.tot_word = int(values[4])
+		self.tot_neg = float(values[2])
+		self.tot_pos = float(values[3])
+		self.tot_word = float(values[4])
 		self.pos_ratio = float(values[5])
 		self.neg_ratio = float(values[6])
 

@@ -48,11 +48,24 @@ class TweetScorer:
 		scores = [-1] * size
 		self.data['Sentiment'] = scores
 
+		# Set up row drop list
+		drop_list = []
+
 		# Score each tweet according to model prediction
-		
 		loc = self.data.columns.get_loc('Sentiment')
 		for index, row in self.data.iterrows():
-			self.data.iat[index, loc] = self.model.predict(row['SentimentText'])
+			prediction =  self.model.predict(row['SentimentText'])
+			
+			# Throw out bad data
+			if prediction == -1:
+				drop_list.append(index)
+				continue
+
+			# Set column value to prediction
+			self.data.iat[index,loc] = prediction
+		
+		# Drop bad data
+		self.data = self.data.drop(self.data.index[drop_list])
 
 
 	# Returns scored data
@@ -68,8 +81,9 @@ if __name__ == "__main__":
 
 	start_time = time.time()
 	
-	TC = TweetCleaner('clinton_Tweets.txt', 'n100000k10.txt')
-	data = TC.getData()
+	TS = TweetScorer('trump_Tweets.txt', 'n100000k10.txt')
+	data = TS.getData()
+	print data.head(20)
 
 	print("Runtime: %s seconds" % (time.time() - start_time))
 

@@ -2,30 +2,50 @@
 import sys
 import tweepy
 
+
 ### Michael O'Malley, Michael Burke
 ### Machine Learning
 ### Semster Project
 ### Twitter Scraper
 
+
 # Define usage for user
 def usage():
     print "Usage: " + str(sys.argv[0]) + " keyword"
 
+
 # Stream Listener for Location problem
+
+
 class StreamListener(tweepy.StreamListener):
 		
+
 	# Open output file to append to
 	output = open('database/' + sys.argv[1] + '_Tweets.txt', 'a+')
 	num = 0
+
 
 	# When a status is found, record the necessary information
 	def on_status(self, status):
 		self.num += 1
 		print "Hit: " + str(self.num)
 		self.output.write(str(status.user.id_str) + '\t')
-		self.output.write(status.text.encode('utf 8').replace('\n','') + '\t')
-		self.output.write(str(status.created_at) + '\t')
+	
+		# Check if retweeted
+		if hasattr(status, 'retweeted_status'):
+			try:
+				self.output.write(status.retweeted_status.extended_tweet['full_text'].encode('utf 8').replace('\n','')+'\t')
+			except AttributeError:
+				self.output.write(status.retweeted_status.text.encode('utf 8').replace('\n','')+'\t')
+		else:
+			try:
+				self.output.write(status.extended_tweet['full_text'].encode('utf 8').replace('\n','')+'\t')
+			except AttributeError:
+				self.output.write(status.text.encode('utf 8').replace('\n','')+'\t')
+		
+		self.output.write(str(status.created_at)+'\t')
 		self.output.write(str(status.coordinates) + '\n')
+
 
 	# Stop if an error occurs
 	def on_error(self, status_code):
@@ -33,7 +53,9 @@ class StreamListener(tweepy.StreamListener):
         	return False
 
 
-# Run main script
+### Main Execution ###
+
+
 if __name__ == "__main__":
 
 	# Check proper usage
@@ -68,5 +90,9 @@ if __name__ == "__main__":
 	api = tweepy.API(auth)
 
 	# Produce Stream results
-	stream = tweepy.streaming.Stream(auth, StreamListener())
+	myListener = StreamListener()
+	stream = tweepy.Stream(auth=api.auth, listener=myListener, tweet_mode='extended')
 	stream.filter(track=keywords)	
+
+
+
