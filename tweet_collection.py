@@ -68,7 +68,7 @@ if __name__ == "__main__":
 	keywords.append(sys.argv[1])
 	keywords.append('#' + sys.argv[1])
 
-	# Consumer keys and access token
+	# Consumer keys and access token #
 
 	# O'Malley's Key
 	consumer_key = 'KNmgLXm5unaUBXCRigqXAy4kf'

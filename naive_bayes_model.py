@@ -6,6 +6,7 @@ import string
 import random
 import numpy as np
 import pandas as pd
+from base_model import BaseModel
 
 
 ### Michael O'Malley, Michael Burke
@@ -17,19 +18,16 @@ import pandas as pd
 ### Naive Bayes Text Analysis ###
 
 
-class NaiveBayesText:
+class NaiveBayesText(BaseModel):
 
 
 	# Initialize class values
 	def __init__(self, datafile, n=500000, k=10):
-		self.data = pd.read_csv('database/' + str(datafile), error_bad_lines = False, warn_bad_lines=False, nrows=n)
-		self.tweet_num = n
-		self.k_folds = k
-		self.resetValues()
+		BaseModel.__init__(self, datafile, n, k)
 
 
 	# Reset all the values
-	def resetValues(self):
+	def resetMetrics(self):
 
 		# Training data
 		self.neg = {}
@@ -41,20 +39,7 @@ class NaiveBayesText:
 		self.neg_ratio = 0
 
 		# Eval metrics
-		self.TP = 0
-		self.TN = 0
-		self.FP = 0
-		self.FN = 0
-		self.accuracy = 0
-		self.precision = 0
-		self.recall = 0
-		self.f1 = 0
-		self.total_text = 0
-
-
-	# Function splits data for k-fold cross validation
-	def splitData(self):
-		self.split_data = np.array_split(self.data, self.k_folds)
+		BaseModel.resetMetrics(self)
 
 
 	# Train given DataFrame
@@ -62,7 +47,7 @@ class NaiveBayesText:
 		
 		# Reset values if indicated
 		if reset:
-			self.resetValues()
+			self.resetMetrics()
 			df = self.data
 
 		# Count words
@@ -155,69 +140,6 @@ class NaiveBayesText:
 		return prediction
 
 
-	# Test given data	
-	def testModel(self, df):
-
-		# Check each piece of text
-		for index, row in df.iterrows():
-
-			# Get sentence prediction
-			prediction = self.predict(row['SentimentText'])
-
-			# Record results
-			self.total_text += 1
-			if prediction == 1 and row['Sentiment'] == 1:
-				self.TP += 1
-			elif prediction == 0 and row['Sentiment'] == 0:
-				self.TN += 1
-			elif prediction == 0 and row['Sentiment'] == 1:
-				self.FN += 1
-			elif prediction == 1 and row['Sentiment'] == 0:
-				self.FP += 1
-		
-		# Calculate final metrics
-		try:
-			self.accuracy = (self.TP+self.TN)/float(self.total_text)
-		except ZeroDivisionError:
-			self.accuracy = 0		
-		try:		
-			self.precision = self.TP/float((self.TP+self.FP))
-		except ZeroDivisionError:
-			self.precision = 0		
-		try:
-			self.recall = self.TP/float((self.TP+self.FN))
-		except ZeroDivisionError:
-			self.recall = 0		
-		try:
-			self.f1 = 2*((self.precision*self.recall)/float((self.precision+self.recall)))
-		except ZeroDivisionError:
-			self.f1 = 0		
-
-	
-	# Evaluate Naive Bayes Algorithm with normal data
-	def quickEval(self):
-
-		# Split data and choose random split
-		self.splitData()
-		i = random.randint(0, self.k_folds-1)
-
-		# Train data
-		if i == 0:
-			self.trainModel(pd.concat(self.split_data[i+1:len(self.split_data)]))
-		elif i == len(self.split_data)-1:
-			self.trainModel(pd.concat(self.split_data[0:i]))
-		else:
-			self.trainModel(pd.concat(self.split_data[0:i]))
-			self.trainModel(pd.concat(self.split_data[i+1:len(self.split_data)]))
-
-		# Test data
-		self.testModel(self.split_data[i])
-
-		# Print results and reset values
-		self.printEval()
-		self.resetValues()
-
-
 	# Evaluate Naive Bayes algorithm with k-fold cross-validation
 	def fullEval(self):
 
@@ -252,7 +174,7 @@ class NaiveBayesText:
 			f1_list.append(self.f1)
 
 			# Reset all values
-			self.resetValues()
+			self.resetMetrics()
 
 		# Print results
 		self.accuracy = sum(acc_list)/len(acc_list)
@@ -262,16 +184,6 @@ class NaiveBayesText:
 		self.printEval()
 
 
-	# Print evaluation metrics
-	def printEval(self):
-		print "NaiveBayesText Evaluation"
-		print "Number of Tweets: %d" % self.tweet_num
-		print "Acurracy: %.2f" % self.accuracy
-		print "Precision: %.2f" % self.precision
-		print "Recall: %.2f" % self.recall
-		print "F1: %.2f\n" % self.f1
-
-	
 	# Save training values to file
 	def saveModel(self, filename=None):
 		
@@ -334,9 +246,9 @@ if __name__=="__main__":
 	NB = NaiveBayesText('Sentiment Analysis Dataset.csv', n, k)
 
 	NB.trainModel(reset=True)
-	NB.saveModel()
+	#NB.saveModel()
 
-	NB.resetValues()
+	NB.resetMetrics()
 	NB.fullEval()
 
 	print("Runtime: %s seconds" % (time.time() - start_time))
