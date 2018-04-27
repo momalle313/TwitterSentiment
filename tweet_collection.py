@@ -34,14 +34,14 @@ class StreamListener(tweepy.StreamListener):
 		# Check if retweeted
 		if hasattr(status, 'retweeted_status'):
 			try:
-				self.output.write(status.retweeted_status.extended_tweet['full_text'].encode('utf 8').replace('\n','')+'\t')
+				self.output.write(status.retweeted_status.extended_tweet['full_text'].encode('ascii', 'ignore').replace('\n','')+'\t')
 			except AttributeError:
-				self.output.write(status.retweeted_status.text.encode('utf 8').replace('\n','')+'\t')
+				self.output.write(status.retweeted_status.text.encode('ascii', 'ignore').replace('\n','')+'\t')
 		else:
 			try:
-				self.output.write(status.extended_tweet['full_text'].encode('utf 8').replace('\n','')+'\t')
+				self.output.write(status.extended_tweet['full_text'].encode('ascii', 'ignore').replace('\n','')+'\t')
 			except AttributeError:
-				self.output.write(status.text.encode('utf 8').replace('\n','')+'\t')
+				self.output.write(status.text.encode('ascii', 'ignore').replace('\n','')+'\t')
 		
 		self.output.write(str(status.created_at)+'\t')
 		self.output.write(str(status.coordinates) + '\n')

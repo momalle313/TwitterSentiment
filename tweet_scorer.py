@@ -1,9 +1,8 @@
 #!/usr/bin/python
-import os
 import sys
 import time
 import pandas as pd
-from naive_bayes_text import NaiveBayesText
+from naive_bayes_model import NaiveBayesText
 
 
 ### Michael O'Malley, Michael Burke
@@ -34,7 +33,7 @@ class TweetScorer:
 
 		# If not, use default values
 		else:
-			self.model.trainData(reset=True)
+			self.model.trainModel(reset=True)
 
 
 	# Records scores of event based tweets based on model
@@ -72,6 +71,11 @@ class TweetScorer:
 	def getData(self):
 		self.scoreTweets()
 		return self.data
+
+	
+	# Returns dicts used in model
+	def getDicts(self):
+		return self.model.returnDicts()
 
 
 ### Testing ###
