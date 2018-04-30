@@ -1,8 +1,10 @@
 #!/usr/bin/python
 import sys
 import time
+import string
 import pandas as pd
 from naive_bayes_model import NaiveBayesText
+from textblob_model import TextBlobModel
 
 
 ### Michael O'Malley, Michael Burke
@@ -18,9 +20,15 @@ class TweetScorer:
 
 
 	# Initialize class values
-	def __init__(self, twitter_data, modelFile=None, train_data='Sentiment Analysis Dataset.csv', n=500000, k=10):
-		self.data = data = pd.read_csv('../database/' + twitter_data, sep='\t', names=['UserID','SentimentText','Time','Location'])
-		self.model = NaiveBayesText(train_data, n, k)
+	def __init__(self, keyword, modelFile=None, train_data='Sentiment Analysis Dataset.csv', n=1000, train_n=500000, k=10, naive_bayes=True):
+		self.data = data = pd.read_csv('../database/' + keyword + '_Tweets.txt', sep='\t', names=['UserID','SentimentText','Time','Location', 'TweetID'], nrows=n)
+		self.data = self.data.dropna()
+		for i in range(0, len(self.data.index)):
+			self.data.iat[i, 1] = self.data.iat[i, 1].translate(None,string.punctuation)
+		if naive_bayes:
+			self.model = NaiveBayesText(train_data, train_n, k)
+		else:
+			self.model = TextBlobModel(train_data, train_n, k)
 		self.modelFile = modelFile
 
 
@@ -51,9 +59,11 @@ class TweetScorer:
 		drop_list = []
 
 		# Score each tweet according to model prediction
-		loc = self.data.columns.get_loc('Sentiment')
-		for index, row in self.data.iterrows():
-			prediction =  self.model.predict(row['SentimentText'])
+		loc1 = self.data.columns.get_loc('SentimentText')
+		loc2 = self.data.columns.get_loc('Sentiment')
+		for i in range(0, len(self.data.index)):
+
+			prediction =  self.model.predict(self.data.iat[i, loc1])
 			
 			# Throw out bad data
 			if prediction == -1:
@@ -61,7 +71,7 @@ class TweetScorer:
 				continue
 
 			# Set column value to prediction
-			self.data.iat[index,loc] = prediction
+			self.data.iat[i,loc2] = prediction
 		
 		# Drop bad data
 		self.data = self.data.drop(self.data.index[drop_list])
@@ -85,7 +95,7 @@ if __name__ == "__main__":
 
 	start_time = time.time()
 	
-	TS = TweetScorer('trump_Tweets.txt', 'n100000k10.txt')
+	TS = TweetScorer(str(sys.argv[1]), 'n100000k10.txt')
 	data = TS.getData()
 	print data.head(20)
 

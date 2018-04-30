@@ -24,8 +24,12 @@ if __name__ == '__main__':
 	print '\n'
 	
 	print "Tweet Scorer Test:\n"
-	os.system("./tweet_scorer.py")
+	os.system("./tweet_scorer.py trump")
 	print '\n'
 
 	print "Event Data Test:\n"
 	os.system("./event_data_model.py trump")
+	print '\n'
+
+	print "Cluster Tweets Test:\n"
+	os.system("./clustering_eval.py trump")

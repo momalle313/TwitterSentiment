@@ -33,7 +33,7 @@ if __name__=="__main__":
 	start_time = time.time()
 	
 	# Obtain scored twitter data and word dictionaries
-	model = TweetScorer(str(str(sys.argv[1]) + '_Tweets.txt'), 'n100000k10.txt')
+	model = TweetScorer(str(str(sys.argv[1])), 'n100000k10.txt')
 	data = model.getData()
 	pos_dict, neg_dict = model.getDicts()
 

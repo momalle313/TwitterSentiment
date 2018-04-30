@@ -44,7 +44,8 @@ class StreamListener(tweepy.StreamListener):
 				self.output.write(status.text.encode('ascii', 'ignore').replace('\n','')+'\t')
 		
 		self.output.write(str(status.created_at)+'\t')
-		self.output.write(str(status.coordinates) + '\n')
+		self.output.write(str(status.coordinates) + '\t')
+		self.output.write(str(status.id) + '\n')
 
 
 	# Stop if an error occurs
