@@ -141,7 +141,7 @@ class NaiveBayesText(BaseModel):
 
 
 	# Evaluate Naive Bayes algorithm with k-fold cross-validation
-	def fullEval(self):
+	def fullEval(self, output=True):
 
 		# Split the data according to k
 		self.splitData()
@@ -181,7 +181,8 @@ class NaiveBayesText(BaseModel):
 		self.precision = sum(pre_list)/len(pre_list)
 		self.recall = sum(rec_list)/len(rec_list)
 		self.f1 = sum(f1_list)/len(f1_list)
-		self.printEval()
+		if output:
+			self.printEval()
 
 
 	# Save training values to file
@@ -244,8 +245,6 @@ if __name__=="__main__":
 	k = 10
 
 	NB = NaiveBayesText('Sentiment Analysis Dataset.csv', n, k)
-
-	NB.resetMetrics()
 	NB.fullEval()
 
 	print("Runtime: %s seconds" % (time.time() - start_time))

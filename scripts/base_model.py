@@ -120,3 +120,8 @@ class BaseModel:
 		print "Recall: %.2f" % self.recall
 		print "F1: %.2f\n" % self.f1
 
+
+	# Returns evaluation metrics
+	def returnEval(self):
+		return self.accuracy, self.precision, self.recall, self.f1
+

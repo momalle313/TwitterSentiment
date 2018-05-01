@@ -41,7 +41,7 @@ class TextBlobModel(BaseModel):
 
 
 	# Evaluate algorithm with k-fold cross-validation
-	def fullEval(self):
+	def fullEval(self, output=True):
 
 		# Split the data according to k
 		self.splitData()
@@ -72,12 +72,13 @@ class TextBlobModel(BaseModel):
 		self.precision = sum(pre_list)/len(pre_list)
 		self.recall = sum(rec_list)/len(rec_list)
 		self.f1 = sum(f1_list)/len(f1_list)
-		self.printEval()
+		if output:
+			self.printEval()
 
 
 	# Print evaluation metrics
 	def printEval(self):
-		print "NaiveBayesText Evaluation"
+		print "TextBlobModel Evaluation"
 		print "Number of Tweets: %d" % self.tweet_num
 		print "Acurracy: %.2f" % self.accuracy
 		print "Precision: %.2f" % self.precision
