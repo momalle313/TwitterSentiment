@@ -250,6 +250,7 @@ if __name__ == "__main__":
 	#CT.graphClusters(clusters)
 	avg = []
 	for i in range(0,100):
+
 		CT = ClusterTweets(str(sys.argv[1]), n=100, k=10)
 		clusters = CT.makeClusters()
 		clusters = CT.recordClusters(clusters)
