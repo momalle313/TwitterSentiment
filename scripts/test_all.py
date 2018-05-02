@@ -31,5 +31,13 @@ if __name__ == '__main__':
 	os.system("./event_data_model.py trump")
 	print '\n'
 
+	print "Primary Model Test:\n"
+	os.system("./primary_model_eval.py 2")
+	print '\n'
+
+	#print "Secondary Model Test:\n"
+	#os.system("./secondary_model_eval.py")
+	#print '\n'
+
 	print "Cluster Tweets Test:\n"
 	os.system("./clustering_eval.py trump")

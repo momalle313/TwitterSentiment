@@ -97,7 +97,7 @@ if __name__ == "__main__":
 	
 	TS = TweetScorer(str(sys.argv[1]), 'n100000k10.txt')
 	data = TS.getData()
-	print data.head(20)
+	print data.head(5)
 
 	print("Runtime: %s seconds" % (time.time() - start_time))
 

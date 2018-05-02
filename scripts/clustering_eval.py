@@ -246,18 +246,21 @@ if __name__ == "__main__":
 	
 
 	#print("Runtime: %s seconds" % (time.time() - start_time))
+	CT = ClusterTweets(str(sys.argv[1]), n=100, k=10)
+	clusters = CT.makeClusters()
+	clusters = CT.recordClusters(clusters)	
+	CT.graphClusters(clusters)
+	#avg = []
+	#for i in range(0,100):
 
-	#CT.graphClusters(clusters)
-	avg = []
-	for i in range(0,100):
+	#	CT = ClusterTweets(str(sys.argv[1]), n=100, k=10)
+	#	clusters = CT.makeClusters()
+	#	clusters = CT.recordClusters(clusters)
+	#	X, y_neg, y_pos, diff = CT.compileData(clusters)
+	
+#	avg.append(sum(diff)/float(len(diff)))
 
-		CT = ClusterTweets(str(sys.argv[1]), n=100, k=10)
-		clusters = CT.makeClusters()
-		clusters = CT.recordClusters(clusters)
-		X, y_neg, y_pos, diff = CT.compileData(clusters)
-		avg.append(sum(diff)/float(len(diff)))
-
-	print sum(avg)/float(len(avg))
+#	print sum(avg)/float(len(avg))
 	
 
 
