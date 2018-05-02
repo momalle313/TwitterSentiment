@@ -38,6 +38,7 @@ class ClusterTweets:
 		self.data = TweetScorer(keyword, modelFile, n=n).getData()
 
 		# Prepare variables
+		self.n = n
 		self.k = k
 		self.centroids = []
 		self.max_recluster = max
@@ -226,12 +227,13 @@ class ClusterTweets:
 		plt.ylabel('Number of Tweets')
 		plt.xlabel('Clusters')
 		plt.xticks(X, labels)
-		plt.title('Clustered Sentiment Analysis Tweets')
+		plt.title(str(sys.argv[1])+' Cluster Evaluation: n'+str(self.n)+'k'+str(self.k))
 		
 		avg = sum(diff)/float(len(diff))
 		leg = [mp.Patch(color='red', label='Negative Sentiment'), mp.Patch(color='blue', label='Positive Sentiment'), ml.Line2D([], [], color='black', label='Avg Difference: %.2f' % avg)]
 		plt.legend(handles=leg)	
 
+		plt.savefig('../images/'+str(sys.argv[1])+'ClusterEvaluation:n'+str(self.n)+'k'+str(self.k)+'.png')
 		plt.show()
 		plt.close()
 
@@ -243,12 +245,11 @@ if __name__ == "__main__":
 
 	start_time = time.time()
 
-	
-
-	#print("Runtime: %s seconds" % (time.time() - start_time))
 	CT = ClusterTweets(str(sys.argv[1]), n=100, k=10)
 	clusters = CT.makeClusters()
-	clusters = CT.recordClusters(clusters)	
+	clusters = CT.recordClusters(clusters)
+	print("Runtime: %s seconds" % (time.time() - start_time))
+		
 	CT.graphClusters(clusters)
 	#avg = []
 	#for i in range(0,100):
