@@ -1,5 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import sys
+sys.dont_write_bytecode = True
 import json
 import time
 import string
@@ -200,14 +201,14 @@ class ClusterTweets:
 			try:
 				diff.append(abs((n/float(n+p))-(p/float(n+p))))
 			except ZeroDivisionError:
-				diff.append(100)
+				diff.append(1.0)
 
 		# Return compiled data
 		return X, y_neg, y_pos, diff
 
 
 	# Graph the results
-	def graphClusters(self, clusters):
+	def graphClusters(self, clusters, show=True):
 
 		# Compile X and y variables
 		X, y_neg, y_pos, diff = self.compileData(clusters)
@@ -215,8 +216,12 @@ class ClusterTweets:
 		# Make labels
 		labels = []
 		for i in range(0, len(X)):
-			n = (y_neg[i]/float(y_neg[i]+y_pos[i]))*100
-			p = (y_pos[i]/float(y_neg[i]+y_pos[i]))*100
+			try:
+				n = (y_neg[i]/float(y_neg[i]+y_pos[i]))*100
+				p = (y_pos[i]/float(y_neg[i]+y_pos[i]))*100
+			except ZeroDivisionError:
+				n = 0
+				p = 0
 			labels.append('Neg:' + str(int(n)) + '%\nPos:' + str(int(p)) + '%')
 
 		# Build stacked bar graph
@@ -233,9 +238,13 @@ class ClusterTweets:
 		leg = [mp.Patch(color='red', label='Negative Sentiment'), mp.Patch(color='blue', label='Positive Sentiment'), ml.Line2D([], [], color='black', label='Avg Difference: %.2f' % avg)]
 		plt.legend(handles=leg)	
 
-		plt.savefig('../images/'+str(sys.argv[1])+'ClusterEvaluation:n'+str(self.n)+'k'+str(self.k)+'.png')
-		plt.show()
-		plt.close()
+		plt.savefig('../images/clustering/'+str(sys.argv[1])+'ClusterEvaluation:n'+str(self.n)+'k'+str(self.k)+'.png')
+		if show:
+			plt.show()
+			plt.close()
+
+		# Return avg difference
+		return avg
 
 
 ### Main Execution ###
@@ -245,23 +254,38 @@ if __name__ == "__main__":
 
 	start_time = time.time()
 
-	CT = ClusterTweets(str(sys.argv[1]), n=100, k=10)
-	clusters = CT.makeClusters()
-	clusters = CT.recordClusters(clusters)
-	print("Runtime: %s seconds" % (time.time() - start_time))
+	#CT = ClusterTweets(str(sys.argv[1]), n=1000, k=5)
+	#clusters = CT.makeClusters()
+	#clusters = CT.recordClusters(clusters)
 		
-	CT.graphClusters(clusters)
-	#avg = []
-	#for i in range(0,100):
+	#CT.graphClusters(clusters)
+	nrows = []
+	avgs = []
+	for j in range(100, 10000, 100):
+		avg_diff = []
+		for i in range(0,10):
 
-	#	CT = ClusterTweets(str(sys.argv[1]), n=100, k=10)
-	#	clusters = CT.makeClusters()
-	#	clusters = CT.recordClusters(clusters)
-	#	X, y_neg, y_pos, diff = CT.compileData(clusters)
+			CT = ClusterTweets(str(sys.argv[1]), n=j, k=10)
+			clusters = CT.makeClusters()
+			clusters = CT.recordClusters(clusters)
+			a, b, c, diff_temp = CT.compileData(clusters)
+			avg_diff.append(sum(diff_temp)/float(len(diff_temp)))
+
+		nrows.append(j)
+		avgs.append(sum(avg_diff)/float(len(avg_diff)))
+
+	print("Runtime: %s seconds" % (time.time() - start_time))
 	
-#	avg.append(sum(diff)/float(len(diff)))
+	plt.plot(nrows, avgs)
 
-#	print sum(avg)/float(len(avg))
+	plt.ylabel('Average difference between\nPositive and Negative Tweets')
+	plt.xlabel('Number of Rows selected from Data')
+	plt.title(str(sys.argv[1])+' Cluster Evaluation')
+		
+	plt.savefig('../images/clustering/'+str(sys.argv[1])+'ClusterEvaluation.png')
+	plt.show()
+	plt.close()
+	
 	
 
 

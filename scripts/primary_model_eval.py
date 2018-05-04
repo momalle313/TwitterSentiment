@@ -1,9 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import sys
+sys.dont_write_bytecode = True
 import time
 import matplotlib.pyplot as plt
 from naive_bayes_model import NaiveBayesText
 from textblob_model import TextBlobModel
+from vader_model import VaderModel
 
 
 ### Michael O'Malley, Michael Burke
@@ -30,6 +32,10 @@ class PrimaryEval:
 		self.tb_pre = []
 		self.tb_rec = []
 		self.tb_f1 = []
+		self.v_acc = []
+		self.v_pre = []
+		self.v_rec = []
+		self.v_f1 = []
 
 
 	# Clear data
@@ -43,6 +49,10 @@ class PrimaryEval:
 		self.tb_pre = []
 		self.tb_rec = []
 		self.tb_f1 = []
+		self.v_acc = []
+		self.v_pre = []
+		self.v_rec = []
+		self.v_f1 = []
 
 
 	# Compile eval data from models
@@ -71,6 +81,15 @@ class PrimaryEval:
 			self.tb_pre.append(pre)
 			self.tb_rec.append(rec)
 			self.tb_f1.append(f1)
+
+			# Compile Vader y data
+			V = VaderModel(self.data, n, k)
+			V.fullEval(False)
+			acc, pre, rec, f1 = V.returnEval()
+			self.v_acc.append(acc)
+			self.v_pre.append(pre)
+			self.v_rec.append(rec)
+			self.v_f1.append(f1)
 	
 			# Iterate for next analysis
 			n*=2
@@ -91,6 +110,7 @@ class PrimaryEval:
 		# Accuracy
 		axs[0,0].plot(self.n, self.nb_acc, label='NaiveBayes', linestyle='-', color='r')
 		axs[0,0].plot(self.n, self.tb_acc, label='TextBlob', linestyle='-', color='b')
+		axs[0,0].plot(self.n, self.v_acc, label='Vader', linestyle='-', color='g')
 		axs[0,0].set_title("Accuracy")
 		axs[0,0].set_xlabel("Rows of data")
 		axs[0,0].set_ylabel("Accuracy")
@@ -99,6 +119,7 @@ class PrimaryEval:
 		# Precision
 		axs[0,1].plot(self.n, self.nb_pre, label='NaiveBayes', linestyle='-', color='r')
 		axs[0,1].plot(self.n, self.tb_pre, label='TextBlob', linestyle='-', color='b')
+		axs[0,1].plot(self.n, self.v_pre, label='Vader', linestyle='-', color='g')
 		axs[0,1].set_title("Precision")
 		axs[0,1].set_xlabel("Rows of data")
 		axs[0,1].set_ylabel("Precision")
@@ -107,6 +128,7 @@ class PrimaryEval:
 		# Recall
 		axs[1,0].plot(self.n, self.nb_rec, label='NaiveBayes', linestyle='-', color='r')
 		axs[1,0].plot(self.n, self.tb_rec, label='TextBlob', linestyle='-', color='b')
+		axs[1,0].plot(self.n, self.v_rec, label='Vader', linestyle='-', color='g')
 		axs[1,0].set_title("Recall")
 		axs[1,0].set_xlabel("Rows of data")
 		axs[1,0].set_ylabel("Recall")
@@ -115,30 +137,35 @@ class PrimaryEval:
 		# F1
 		axs[1,1].plot(self.n, self.nb_f1, label='NaiveBayes', linestyle='-', color='r')
 		axs[1,1].plot(self.n, self.tb_f1, label='TextBlob', linestyle='-', color='b')
+		axs[1,1].plot(self.n, self.v_f1, label='Vader', linestyle='-', color='g')
 		axs[1,1].set_title("F1 Score")
 		axs[1,1].set_xlabel("Rows of data")
 		axs[1,1].set_ylabel("F1 Score")
 		axs[1,1].legend()
 
 		# Show graphs
-		plt.suptitle('NaiveBayes vs TextBlob')
+		plt.suptitle('NaiveBayes vs TextBlob vs Vader')
 		plt.tight_layout(w_pad=1.5, h_pad=1.5)
 		if save:
-			fig.savefig('../images/NaiveBayes_vs_TextBlob.png', dpi=fig.dpi)
+			fig.savefig('../images/NaiveBayes_vs_TextBlob__vs_Vader.png', dpi=fig.dpi)
 		plt.show()
 		plt.close()
 
 
-	# Print Results
+	# print Results
 	def printResults(self):
-		print self.nb_acc
-		print self.nb_pre
-		print self.nb_rec
-		print self.nb_f1 
-		print self.tb_acc
-		print self.tb_pre
-		print self.tb_rec
-		print self.tb_f1
+		print(self.nb_acc)
+		print(self.nb_pre)
+		print(self.nb_rec)
+		print(self.nb_f1)
+		print(self.tb_acc)
+		print(self.tb_pre)
+		print(self.tb_rec)
+		print(self.tb_f1)
+		print(self.v_acc)
+		print(self.v_pre)
+		print(self.v_rec)
+		print(self.v_f1)		
 
 
 ### Main Execution ###
@@ -149,7 +176,7 @@ if __name__ == "__main__":
 	start_time = time.time()
 
 	PE = PrimaryEval('Sentiment Analysis Dataset.csv')
-	PE.compile(int(sys.argv[1]), 1000, 10)
+	PE.graph(int(sys.argv[1]), 1000, 10)
 	PE.printResults()
 
 	print("Runtime: %s seconds" % (time.time() - start_time))

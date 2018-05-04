@@ -1,59 +1,75 @@
 #!/usr/bin/python3
 import sys
 sys.dont_write_bytecode = True
-import ast
 import time
 import string
-import random
 import numpy as np
 import pandas as pd
-from base_model import BaseModel
+from naive_bayes_model import NaiveBayesText
+from tweet_scorer import TweetScorer
 
 
 ### Michael O'Malley, Michael Burke
 ### Machine Learning
 ### Semster Project
-### Tweet Data Model
+### Event Data Model
 
 
-### Naive Bayes Text Analysis ###
+### Naive Bayes Secondary Model ###
 
 
-class NaiveBayesText(BaseModel):
+class EventDataNaiveBayes(NaiveBayesText):
 
 
-	# Initialize class values
-	def __init__(self, datafile, n=500000, k=10):
-		BaseModel.__init__(self, datafile, n, k)
+	# Initialize class variables
+	def __init__(self, datafile, n=10000, k=10, graded=False, model=1):
+		NaiveBayesText.__init__(self, datafile + '_graded_Tweets.txt', n, k)
+		NaiveBayesText.readModel(self, 'n100000k10.txt')
+		self.pos_dict, self.neg_dict = NaiveBayesText.getDicts(self)
+
+		# If data is not graded, score it
+		if graded:
+			self.data = pd.read_csv('../database/' + str(datafile) + '_graded_Tweets.txt', error_bad_lines=False, warn_bad_lines=False, sep='\t', names=['UserID','SentimentText','Time','Location', 'TweetID', 'Sentiment'], nrows=n)
+		else:
+			self.model = TweetScorer(datafile, 'n100000k10.txt', model=model)
+			self.data = self.model.getData()
+			self.tweet_num = len(self.data.index)
+
+		self.resetMetrics()
 
 
 	# Reset all the values
 	def resetMetrics(self):
-
-		# Training data
-		self.neg = {}
-		self.pos = {}
-		self.tot_neg = 0
-		self.tot_pos = 0
-		self.tot_word = 0
-		self.pos_ratio = 0
-		self.neg_ratio = 0
-
-		# Eval metrics
-		BaseModel.resetMetrics(self)
+		self.pos_usr = {}
+		self.neg_usr = {}
+		NaiveBayesText.resetMetrics(self)
 
 
 	# Train given DataFrame
-	def trainModel(self, df=None, reset=False):
-
+	def trainModel(self, df, reset=False):
+		
 		# Reset values if indicated
 		if reset:
 			self.resetMetrics()
 			df = self.data
 
-		# Count words
+		# Count words unique to the event
 		for index, row in df.iterrows():
 
+			# Add users to dicts
+			if row['Sentiment'] == 1:
+				self.tot_pos += 1
+				if row['UserID'] in self.pos_usr:
+					self.pos_usr[row['UserID']] += 1
+				else:
+					self.pos_usr[row['UserID']] = 1
+			else:
+				self.tot_neg += 1
+				if row['UserID'] in self.neg_usr:
+					self.neg_usr[row['UserID']] += 1
+				else:
+					self.neg_usr[row['UserID']] = 1
+		
 			# Split into words
 			translation = {None:string.punctuation}
 			words = row['SentimentText'].translate(translation).split()
@@ -64,30 +80,42 @@ class NaiveBayesText(BaseModel):
 				# Add word to total count
 				self.tot_word += 1
 
-				# Check if sentiment is neg or pos, then add to dict
-				if row['Sentiment'] == 0:
-					self.tot_neg += 1
-					if word in self.neg:
-						self.neg[word] += 1
-					else:
-						self.neg[word] = 1
+				# If word is positive and unique to event, record it
+				if row['Sentiment'] == 1:
+					if word not in self.pos_dict:
+						self.tot_pos+=1
+						if word in self.pos:
+							self.pos[word] += 1
+						else:
+							self.pos[word] = 1
+
+				# If word is negative and unique to event, record it
 				else:
-					self.tot_pos += 1
-					if word in self.pos:
-						self.pos[word] += 1
-					else:
-						self.pos[word] = 1
+					if word not in self.neg_dict:
+						self.tot_neg+=1
+						if word in self.neg:
+							self.neg[word] += 1
+						else:
+							self.neg[word] = 1
 
 		# Fix zero-frequency problem
 		self.pos = {key:value+1 for key, value in self.pos.items()}
 		self.neg = {key:value+1 for key, value in self.neg.items()}
+		self.pos_usr = {key:value+1 for key, value in self.pos_usr.items()}
+		self.neg_usr = {key:value+1 for key, value in self.neg_usr.items()}
 		for key in self.pos.keys():
 			if key not in self.neg:
 				self.neg[key] = 1
 		for key in self.neg.keys():
 			if key not in self.pos:
 				self.pos[key] = 1
-	
+		for key in self.pos_usr.keys():
+			if key not in self.neg_usr:
+				self.neg_usr[key] = 1
+		for key in self.neg_usr.keys():
+			if key not in self.pos_usr:
+				self.pos_usr[key] = 1
+
 		# Normalize totals so ratios don't get too small
 		self.tot_neg = self.tot_neg/(self.tweet_num/float(10))
 		self.tot_pos = self.tot_pos/(self.tweet_num/float(10))
@@ -98,7 +126,9 @@ class NaiveBayesText(BaseModel):
 		self.neg_ratio = self.tot_neg/self.tot_word
 		self.pos = {key:(self.pos[key]/self.tot_pos) for key in self.pos.keys()}
 		self.neg = {key:(self.neg[key]/self.tot_neg) for key in self.neg.keys()}
-	
+		self.pos_usr = {key:(self.pos_usr[key]/self.tot_pos) for key in self.pos_usr.keys()}
+		self.neg_usr = {key:(self.neg_usr[key]/self.tot_neg) for key in self.neg_usr.keys()}
+
 
 	# Make prediction for text
 	def predict(self, sentence, usr=None):
@@ -123,11 +153,22 @@ class NaiveBayesText(BaseModel):
 				pos_score *= self.pos[word]
 			if word in self.neg:
 				neg_score *= self.neg[word]
+			
+			if word in self.pos_dict:
+				pos_score *= self.pos_dict[word]
+			if word in self.neg_dict:
+				neg_score *= self.neg_dict[word]
+
+		# Add in user score
+		if usr in self.pos_usr:
+			pos_score *= self.pos_usr[usr]
+		if usr in self.neg_usr:
+			neg_score *= self.neg_usr[usr]
 				
 		# Include overall ratios
 		pos_score *= self.pos_ratio
 		neg_score *= self.neg_ratio
-
+		
 		# Normalize
 		div = pos_score+neg_score
 		if div == 0:
@@ -185,52 +226,7 @@ class NaiveBayesText(BaseModel):
 		self.recall = sum(rec_list)/len(rec_list)
 		self.f1 = sum(f1_list)/len(f1_list)
 		if output:
-			BaseModel.printEval(self)
-
-
-	# Save training values to file
-	def saveModel(self, filename=None):
-		
-		# Open or create file to write to
-		if filename == None:
-			filename = 'n' + str(self.tweet_num) + 'k' + str(self.k_folds) + '.txt'
-		f = open('../models/' + filename,"w+")
-
-		# Write values to file
-		f.write(str(self.neg) + '\n')
-		f.write(str(self.pos) + '\n')
-		f.write(str(self.tot_neg) + '\n')
-		f.write(str(self.tot_pos) + '\n')
-		f.write(str(self.tot_word) + '\n')
-		f.write(str(self.pos_ratio) + '\n')
-		f.write(str(self.neg_ratio) + '\n')
-
-		# Close file
-		f.close()
-
-
-	# Read training values from file
-	def readModel(self, filename=None):
-
-		# Open file and read in values
-		values = []
-		if filename == None:
-			filename = 'n' + str(self.tweet_num) + 'k' + str(self.k_folds) + '.txt'
-		with open('../models/' + filename,"r") as f:
-			for line in f:
-				values.append(line)
-
-		# Load values from file
-		self.neg = ast.literal_eval(values[0])
-		self.pos = ast.literal_eval(values[1])
-		self.tot_neg = float(values[2])
-		self.tot_pos = float(values[3])
-		self.tot_word = float(values[4])
-		self.pos_ratio = float(values[5])
-		self.neg_ratio = float(values[6])
-
-		# Close file
-		f.close()
+			NaiveBayesText.printEval(self)
 
 
 	# Return compiled dictionaries
@@ -238,18 +234,25 @@ class NaiveBayesText(BaseModel):
 		return self.pos, self.neg
 
 
-### Testing ###
+# Usage function
+def usage(program):
+    print('Usage: {} keyword'.format(program))
+
+
+### Main Execution ###
 
 
 if __name__=="__main__":
 
-	start_time = time.time()
-	n = int(sys.argv[1])
-	k = 10
+	# Assert proper usage
+	if len(sys.argv) != 2:
+	        usage(sys.argv[0])
+        	sys.exit(1)
 
-	NB = NaiveBayesText('Sentiment Analysis Dataset.csv', n, k)
-	NB.fullEval()
+	start_time = time.time()
+
+	model = EventDataNaiveBayes(str(sys.argv[1]), 100000, 10, False, 1)
+	model.fullEval()
 
 	print("Runtime: %s seconds" % (time.time() - start_time))
 
-	

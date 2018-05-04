@@ -1,5 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import sys
+sys.dont_write_bytecode = True
 import tweepy
 
 
@@ -11,7 +12,7 @@ import tweepy
 
 # Define usage for user
 def usage():
-    print "Usage: " + str(sys.argv[0]) + " keyword"
+    print("Usage: " + str(sys.argv[0]) + " keyword")
 
 
 # Stream Listener for Location problem
@@ -28,7 +29,7 @@ class StreamListener(tweepy.StreamListener):
 	# When a status is found, record the necessary information
 	def on_status(self, status):
 		self.num += 1
-		print "Hit: " + str(self.num)
+		print("Hit: " + str(self.num))
 		self.output.write(str(status.user.id_str) + '\t')
 	
 		# Check if retweeted
@@ -50,7 +51,7 @@ class StreamListener(tweepy.StreamListener):
 
 	# Stop if an error occurs
 	def on_error(self, status_code):
-        	print "Error Code: " + str(status_code)
+        	print("Error Code: " + str(status_code))
         	return False
 
 

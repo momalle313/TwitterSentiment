@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import io
 import sys
 sys.dont_write_bytecode = True
 import time
@@ -6,7 +7,7 @@ import string
 import random
 import numpy as np
 import pandas as pd
-from textblob import TextBlob
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from base_model import BaseModel
 
 
@@ -19,12 +20,13 @@ from base_model import BaseModel
 ### TextBlob training model ###
 
 
-class TextBlobModel(BaseModel):
+class VaderModel(BaseModel):
 
 
 	# Initialize class values
 	def __init__(self, datafile, n=500000, k=10):
 		BaseModel.__init__(self, datafile, n, k)
+		self.model = SentimentIntensityAnalyzer()
 
 
 	# Make prediction for sentence
@@ -32,7 +34,7 @@ class TextBlobModel(BaseModel):
 		
 		# Run string through text blob
 		translation = {None:string.punctuation}
-		score = TextBlob(sentence.translate(translation)).sentiment[0]
+		score = self.model.polarity_scores(sentence.translate(translation))['compound']
 		
 		# Make prediction and return output
 		if score >= 0:
@@ -87,7 +89,7 @@ if __name__=="__main__":
 	n = int(sys.argv[1])
 	k = 10
 
-	TB = TextBlobModel('Sentiment Analysis Dataset.csv', n, k)
+	TB = VaderModel('Sentiment Analysis Dataset.csv', n, k)
 	TB.fullEval()
 
 	print("Runtime: %s seconds" % (time.time() - start_time))

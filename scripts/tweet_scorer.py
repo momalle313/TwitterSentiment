@@ -1,10 +1,12 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import sys
+sys.dont_write_bytecode = True
 import time
 import string
 import pandas as pd
 from naive_bayes_model import NaiveBayesText
 from textblob_model import TextBlobModel
+from vader_model import VaderModel
 
 
 ### Michael O'Malley, Michael Burke
@@ -20,15 +22,20 @@ class TweetScorer:
 
 
 	# Initialize class values
-	def __init__(self, keyword, modelFile=None, train_data='Sentiment Analysis Dataset.csv', n=1000, train_n=500000, k=10, naive_bayes=True):
-		self.data = data = pd.read_csv('../database/' + keyword + '_Tweets.txt', sep='\t', names=['UserID','SentimentText','Time','Location', 'TweetID'], nrows=n)
+	def __init__(self, keyword, modelFile=None, train_data='Sentiment Analysis Dataset.csv', n=1000, train_n=500000, k=10, model=1):
+		self.nb = False
+		self.data = pd.read_csv('../database/' + keyword + '_Tweets.txt', sep='\t', names=['UserID','SentimentText','Time','Location', 'TweetID'], nrows=n)
 		self.data = self.data.dropna()
 		for i in range(0, len(self.data.index)):
-			self.data.iat[i, 1] = self.data.iat[i, 1].translate(None,string.punctuation)
-		if naive_bayes:
+			translation = {None:string.punctuation}
+			self.data.iat[i, 1] = self.data.iat[i, 1].translate(translation)
+		if model == 1:
+			self.nb = True
 			self.model = NaiveBayesText(train_data, train_n, k)
-		else:
+		elif model == 2:
 			self.model = TextBlobModel(train_data, train_n, k)
+		else:
+			self.model = VaderModel(train_data, train_n, k)
 		self.modelFile = modelFile
 
 
@@ -48,7 +55,8 @@ class TweetScorer:
 	def scoreTweets(self):
 		
 		# Train model
-		self.trainModel()
+		if self.nb:
+			self.trainModel()
 
 		# Add blank new column to database
 		size = len(self.data.index)
@@ -85,7 +93,7 @@ class TweetScorer:
 	
 	# Returns dicts used in model
 	def getDicts(self):
-		return self.model.returnDicts()
+		return self.model.getDicts()
 
 
 ### Testing ###
@@ -97,7 +105,7 @@ if __name__ == "__main__":
 	
 	TS = TweetScorer(str(sys.argv[1]), 'n100000k10.txt')
 	data = TS.getData()
-	print data.head(5)
+	print(data.head(5))
 
 	print("Runtime: %s seconds" % (time.time() - start_time))
 

@@ -1,7 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import os
-import pydot
 import sys
+sys.dont_write_bytecode = True
 
 
 ### Michael O'Malley, Michael Burke
@@ -15,29 +15,29 @@ import sys
 
 if __name__ == '__main__':
     
-	print "Naive Bayes Test:\n"
+	print("Naive Bayes Test:\n")
 	os.system("./naive_bayes_model.py 1000")
-	print '\n'
+	print('\n')
 
-	print "Text Blob Test:\n"
+	print("Text Blob Test:\n")
 	os.system("./textblob_model.py 1000")
-	print '\n'
+	print('\n')
 	
-	print "Tweet Scorer Test:\n"
+	print("Tweet Scorer Test:\n")
 	os.system("./tweet_scorer.py trump")
-	print '\n'
+	print('\n')
 
-	print "Event Data Test:\n"
+	print("Event Data Test:\n")
 	os.system("./event_data_model.py trump")
-	print '\n'
+	print('\n')
 
-	print "Primary Model Test:\n"
+	print("Primary Model Test:\n")
 	os.system("./primary_model_eval.py 2")
-	print '\n'
+	print('\n')
 
-	#print "Secondary Model Test:\n"
+	#print("Secondary Model Test:\n")
 	#os.system("./secondary_model_eval.py")
-	#print '\n'
+	#print('\n')
 
-	print "Cluster Tweets Test:\n"
+	print("Cluster Tweets Test:\n")
 	os.system("./clustering_eval.py trump")

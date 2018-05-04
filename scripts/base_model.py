@@ -1,6 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import sys
+sys.dont_write_bytecode = True
 import ast
+import csv
 import time
 import string
 import random
@@ -22,8 +24,11 @@ class BaseModel:
 
 	# Initialize class values
 	def __init__(self, datafile, n=500000, k=10):
-		self.data = pd.read_csv('../database/' + str(datafile), error_bad_lines=False, warn_bad_lines=False, nrows=n)
-		self.tweet_num = n
+		if datafile == 'Sentiment Analysis Dataset.csv':
+			self.data = pd.read_csv('../database/' + str(datafile), error_bad_lines=False, warn_bad_lines=False, nrows=n, quoting=csv.QUOTE_NONE)
+		else:
+			self.data = pd.read_csv('../database/' + str(datafile), sep='\t', names=['UserID','SentimentText','Time','Location', 'TweetID', 'Sentiment'], nrows=n, index_col=False)
+		self.tweet_num = len(self.data.index)
 		self.k_folds = k
 		self.resetMetrics()
 
@@ -55,8 +60,11 @@ class BaseModel:
 		for index, row in df.iterrows():
 
 			# Get sentence prediction
-			prediction = self.predict(row['SentimentText'])
-
+			try:
+				prediction = self.predict(row['SentimentText'], row['UserID'])
+			except KeyError:
+				prediction = self.predict(row['SentimentText'], None)
+			
 			# Record results
 			self.total_text += 1
 			if prediction == 1 and row['Sentiment'] == 1:
@@ -113,12 +121,11 @@ class BaseModel:
 
 	# Print evaluation metrics
 	def printEval(self):
-		print "NaiveBayesText Evaluation"
-		print "Number of Tweets: %d" % self.tweet_num
-		print "Acurracy: %.2f" % self.accuracy
-		print "Precision: %.2f" % self.precision
-		print "Recall: %.2f" % self.recall
-		print "F1: %.2f\n" % self.f1
+		print("Number of Tweets: %d" % self.tweet_num)
+		print("Acurracy: %.2f" % self.accuracy)
+		print("Precision: %.2f" % self.precision)
+		print("Recall: %.2f" % self.recall)
+		print("F1: %.2f\n" % self.f1)
 
 
 	# Returns evaluation metrics
