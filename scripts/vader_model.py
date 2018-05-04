@@ -14,10 +14,10 @@ from base_model import BaseModel
 ### Michael O'Malley, Michael Burke
 ### Machine Learning
 ### Semster Project
-### Text Blob Model
+### Vader Model
 
 
-### TextBlob training model ###
+### Vader training model ###
 
 
 class VaderModel(BaseModel):

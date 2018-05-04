@@ -27,10 +27,6 @@ if __name__ == '__main__':
 	os.system("./tweet_scorer.py trump")
 	print('\n')
 
-	print("Event Data Test:\n")
-	os.system("./event_data_model.py trump")
-	print('\n')
-
 	print("Primary Model Test:\n")
 	os.system("./primary_model_eval.py 2")
 	print('\n')

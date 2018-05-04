@@ -15,7 +15,7 @@ def usage():
     print("Usage: " + str(sys.argv[0]) + " keyword")
 
 
-# Stream Listener for Location problem
+# Stream Listener for keywords ###
 
 
 class StreamListener(tweepy.StreamListener):

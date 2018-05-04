@@ -136,7 +136,7 @@ class SecondaryEval:
 		plt.suptitle('EventNaiveBayes vs EventNeuralNet')
 		plt.tight_layout(w_pad=1.5, h_pad=1.5)
 		if save:
-			fig.savefig('../images/EventNaiveBayes_vs_EventNeuralNet:NaiveBayesGraded.png', dpi=fig.dpi)
+			fig.savefig('../images/EventNaiveBayes_vs_EventNeuralNet:TextBlobGraded.png', dpi=fig.dpi)
 		plt.show()
 		plt.close()
 
