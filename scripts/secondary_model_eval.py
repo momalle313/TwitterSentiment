@@ -67,7 +67,7 @@ class SecondaryEval:
 			self.n.append(n)
 			
 			# Compile Event Naive Bayes y data
-			ENB = EventDataNaiveBayes(self.data, n, k, False, 2)
+			ENB = EventDataNaiveBayes(self.data, n, k, False, 1)
 			ENB.fullEval(False)
 			acc, pre, rec, f1 = ENB.returnEval()
 			self.enb_acc.append(acc)
@@ -76,7 +76,7 @@ class SecondaryEval:
 			self.enb_f1.append(f1)
 			
 			# Compile Event Neural Net y data
-			ENN = EventDataNeuralNet(self.data, n, k, False, 2, 50)
+			ENN = EventDataNeuralNet(self.data, n, k, False, 1, 50)
 			ENN.fullEval(False)
 			acc, pre, rec, f1 = ENN.returnEval()
 			self.enn_acc.append(acc)
@@ -136,7 +136,7 @@ class SecondaryEval:
 		plt.suptitle('EventNaiveBayes vs EventNeuralNet')
 		plt.tight_layout(w_pad=1.5, h_pad=1.5)
 		if save:
-			fig.savefig('../images/EventNaiveBayes_vs_EventNeuralNet:TextBlobGraded.png', dpi=fig.dpi)
+			fig.savefig('../images/EventNaiveBayes_vs_EventNeuralNet:NaiveBayesGraded-' + self.data + '.png', dpi=fig.dpi)
 		plt.show()
 		plt.close()
 

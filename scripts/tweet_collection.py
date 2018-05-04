@@ -10,11 +10,6 @@ import tweepy
 ### Twitter Scraper
 
 
-# Define usage for user
-def usage():
-    print("Usage: " + str(sys.argv[0]) + " keyword")
-
-
 # Stream Listener for keywords ###
 
 
@@ -53,6 +48,11 @@ class StreamListener(tweepy.StreamListener):
 	def on_error(self, status_code):
         	print("Error Code: " + str(status_code))
         	return False
+
+
+# Define usage for user
+def usage():
+    print("Usage: " + str(sys.argv[0]) + " keyword")
 
 
 ### Main Execution ###

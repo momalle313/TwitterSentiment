@@ -4,9 +4,8 @@ sys.dont_write_bytecode = True
 import time
 import string
 import pandas as pd
-from naive_bayes_model import NaiveBayesText
-from textblob_model import TextBlobModel
-from vader_model import VaderModel
+from event_data_naive_bayes import EventDataNaiveBayes
+from event_data_neural_net import EventDataNeuralNet
 
 
 ### Michael O'Malley, Michael Burke
@@ -18,45 +17,27 @@ from vader_model import VaderModel
 ### Scored tweets according to given model ###
 
 
-class TweetScorer:
+class TweetScorerV2:
 
 
 	# Initialize class values
-	def __init__(self, keyword, modelFile=None, train_data='Sentiment Analysis Dataset.csv', n=1000, train_n=500000, k=10, model=1):
-		self.nb = False
+	def __init__(self, keyword, n=1000, train_n=500000, k=10, model=1):
 		self.data = pd.read_csv('../database/' + keyword + '_Tweets.txt', sep='\t', names=['UserID','SentimentText','Time','Location', 'TweetID'], nrows=n)
 		self.data = self.data.dropna()
 		for i in range(0, len(self.data.index)):
 			translation = {None:string.punctuation}
 			self.data.iat[i, 1] = self.data.iat[i, 1].translate(translation)
 		if model == 1:
-			self.nb = True
-			self.model = NaiveBayesText(train_data, train_n, k)
-		elif model == 2:
-			self.model = TextBlobModel(train_data, train_n, k)
-		elif model == 3:
-			self.model = VaderModel(train_data, train_n, k)
-		self.modelFile = modelFile
-
-
-	# Train NaiveBayesText with new data or data from file
-	def trainModel(self):
-		
-		# If modelFile is given, load that
-		if self.modelFile != None:
-			self.model.readModel(self.modelFile)
-
-		# If not, use default values
+			self.model = EventDataNaiveBayes(keyword, train_n, k, False, 1)
 		else:
-			self.model.trainModel(reset=True)
+			self.model = EventDataNeuralNet(keyword, train_n, k, False, 1, 50)
 
 
 	# Records scores of event based tweets based on model
 	def scoreTweets(self):
 		
 		# Train model
-		if self.nb:
-			self.trainModel()
+		self.model.trainModel(self.data, reset=True)
 
 		# Add blank new column to database
 		size = len(self.data.index)
@@ -103,7 +84,7 @@ if __name__ == "__main__":
 
 	start_time = time.time()
 	
-	TS = TweetScorer(str(sys.argv[1]), 'n100000k10.txt')
+	TS = TweetScorerV2(str(sys.argv[1]))
 	data = TS.getData()
 	print(data.head(5))
 

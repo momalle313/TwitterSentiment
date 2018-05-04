@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mp
 import matplotlib.lines as ml
 from tweet_scorer import TweetScorer
+from tweet_scorer_v2 import TweetScorerV2
 
 
 ### Michael O'Malley, Michael Burke
@@ -34,9 +35,7 @@ class ClusterTweets:
 
 		# Format data
 		self.data = self.data.dropna()
-		for i in range(0, len(self.data.index)):
-			self.data.iat[i, 1] = self.data.iat[i, 1].translate(None,string.punctuation).split()
-		self.data = TweetScorer(keyword, modelFile, n=n).getData()
+		self.data = TweetScorerV2(keyword, n=n, model=2).getData()
 
 		# Prepare variables
 		self.n = n
@@ -97,7 +96,7 @@ class ClusterTweets:
 		place = 0
 
 		# Check each cluster for a new centroid
-		for key, value in clusters.iteritems():
+		for key, value in clusters.items():
 			
 			# Set the min to the total jaccard distances for the current key
 			min = 0
@@ -151,7 +150,7 @@ class ClusterTweets:
 		new_clusters = {}
 		i = 1
 		for key in clusters.keys():
-			new_clusters[i] = clusters.pop(key)
+			new_clusters[i] = clusters[key]
 			i+=1
 
 		# Return new values
@@ -172,7 +171,7 @@ class ClusterTweets:
 		# Make cluster and add them to the coulumn
 		loc = self.data.columns.get_loc('Cluster')
 		for i in range(0, len(self.data.index)):	
-			for key, value in clusters.iteritems():
+			for key, value in clusters.items():
 				if i in value:
 					self.data.iat[i, loc] = int(key)
 	
@@ -232,13 +231,13 @@ class ClusterTweets:
 		plt.ylabel('Number of Tweets')
 		plt.xlabel('Clusters')
 		plt.xticks(X, labels)
-		plt.title(str(sys.argv[1])+' Cluster Evaluation: n'+str(self.n)+'k'+str(self.k))
+		plt.title(str(sys.argv[1])+' ENN Cluster Evaluation: n'+str(self.n)+'k'+str(self.k))
 		
 		avg = sum(diff)/float(len(diff))
 		leg = [mp.Patch(color='red', label='Negative Sentiment'), mp.Patch(color='blue', label='Positive Sentiment'), ml.Line2D([], [], color='black', label='Avg Difference: %.2f' % avg)]
 		plt.legend(handles=leg)	
 
-		plt.savefig('../images/clustering/'+str(sys.argv[1])+'ClusterEvaluation:n'+str(self.n)+'k'+str(self.k)+'.png')
+		plt.savefig('../images/clustering/'+str(sys.argv[1])+'ENNClusterEvaluation:n'+str(self.n)+'k'+str(self.k)+'.png')
 		if show:
 			plt.show()
 			plt.close()
@@ -254,37 +253,38 @@ if __name__ == "__main__":
 
 	start_time = time.time()
 
-	#CT = ClusterTweets(str(sys.argv[1]), n=1000, k=5)
-	#clusters = CT.makeClusters()
-	#clusters = CT.recordClusters(clusters)
+	CT = ClusterTweets(str(sys.argv[1]), n=10000, k=10)
+	clusters = CT.makeClusters()
+	clusters = CT.recordClusters(clusters)
 		
-	#CT.graphClusters(clusters)
-	nrows = []
-	avgs = []
-	for j in range(100, 10000, 100):
-		avg_diff = []
-		for i in range(0,10):
-
-			CT = ClusterTweets(str(sys.argv[1]), n=j, k=10)
-			clusters = CT.makeClusters()
-			clusters = CT.recordClusters(clusters)
-			a, b, c, diff_temp = CT.compileData(clusters)
-			avg_diff.append(sum(diff_temp)/float(len(diff_temp)))
-
-		nrows.append(j)
-		avgs.append(sum(avg_diff)/float(len(avg_diff)))
-
+	CT.graphClusters(clusters)
 	print("Runtime: %s seconds" % (time.time() - start_time))
-	
-	plt.plot(nrows, avgs)
-
-	plt.ylabel('Average difference between\nPositive and Negative Tweets')
-	plt.xlabel('Number of Rows selected from Data')
-	plt.title(str(sys.argv[1])+' Cluster Evaluation')
-		
-	plt.savefig('../images/clustering/'+str(sys.argv[1])+'ClusterEvaluation.png')
-	plt.show()
-	plt.close()
+#	nrows = []
+#	avgs = []
+#	for j in range(100, 10000, 100):
+#		avg_diff = []
+#		for i in range(0,10):
+#
+#			CT = ClusterTweets(str(sys.argv[1]), n=j, k=10)
+#			clusters = CT.makeClusters()
+#			clusters = CT.recordClusters(clusters)
+#			a, b, c, diff_temp = CT.compileData(clusters)
+#			avg_diff.append(sum(diff_temp)/float(len(diff_temp)))
+#
+#		nrows.append(j)
+#		avgs.append(sum(avg_diff)/float(len(avg_diff)))
+#
+#	print("Runtime: %s seconds" % (time.time() - start_time))
+#	
+#	plt.plot(nrows, avgs)
+#
+#	plt.ylabel('Average difference between\nPositive and Negative Tweets')
+#	plt.xlabel('Number of Rows selected from Data')
+#	plt.title(str(sys.argv[1])+' Cluster Evaluation')
+#		
+#	plt.savefig('../images/clustering/'+str(sys.argv[1])+'ClusterEvaluation.png')
+#	plt.show()
+#	plt.close()
 	
 	
 
