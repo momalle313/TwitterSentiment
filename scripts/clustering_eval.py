@@ -38,7 +38,7 @@ class ClusterTweets:
 		self.data = TweetScorerV2(keyword, n=n, model=2).getData()
 
 		# Prepare variables
-		self.n = n
+		self.n = len(self.data)
 		self.k = k
 		self.centroids = []
 		self.max_recluster = max
@@ -253,35 +253,35 @@ if __name__ == "__main__":
 
 	start_time = time.time()
 
-	CT = ClusterTweets(str(sys.argv[1]), n=10000, k=10)
+	CT = ClusterTweets(str(sys.argv[1]), n=1000, k=10)
 	clusters = CT.makeClusters()
 	clusters = CT.recordClusters(clusters)
 		
 	CT.graphClusters(clusters)
-	print("Runtime: %s seconds" % (time.time() - start_time))
+
 #	nrows = []
 #	avgs = []
-#	for j in range(100, 10000, 100):
+#	for j in range(100, 1000, 100):
 #		avg_diff = []
 #		for i in range(0,10):
-#
+
 #			CT = ClusterTweets(str(sys.argv[1]), n=j, k=10)
 #			clusters = CT.makeClusters()
 #			clusters = CT.recordClusters(clusters)
 #			a, b, c, diff_temp = CT.compileData(clusters)
 #			avg_diff.append(sum(diff_temp)/float(len(diff_temp)))
-#
+
 #		nrows.append(j)
 #		avgs.append(sum(avg_diff)/float(len(avg_diff)))
-#
-#	print("Runtime: %s seconds" % (time.time() - start_time))
-#	
+
+	print("Runtime: %s seconds" % (time.time() - start_time))
+	
 #	plt.plot(nrows, avgs)
-#
+
 #	plt.ylabel('Average difference between\nPositive and Negative Tweets')
 #	plt.xlabel('Number of Rows selected from Data')
 #	plt.title(str(sys.argv[1])+' Cluster Evaluation')
-#		
+		
 #	plt.savefig('../images/clustering/'+str(sys.argv[1])+'ClusterEvaluation.png')
 #	plt.show()
 #	plt.close()

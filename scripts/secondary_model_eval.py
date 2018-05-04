@@ -161,7 +161,7 @@ if __name__ == "__main__":
 	start_time = time.time()
 
 	SE = SecondaryEval('trump')
-	SE.graph(int(sys.argv[1]), 1000, 10)
+	SE.compile(int(sys.argv[1]), 100, 10)
 	SE.printResults()
 
 	print("Runtime: %s seconds" % (time.time() - start_time))

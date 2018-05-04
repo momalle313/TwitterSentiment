@@ -176,7 +176,7 @@ if __name__ == "__main__":
 	start_time = time.time()
 
 	PE = PrimaryEval('Sentiment Analysis Dataset.csv')
-	PE.graph(int(sys.argv[1]), 1000, 10)
+	PE.compile(int(sys.argv[1]), 1000, 10)
 	PE.printResults()
 
 	print("Runtime: %s seconds" % (time.time() - start_time))
